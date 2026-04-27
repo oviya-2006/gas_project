@@ -1,67 +1,136 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Smart Gas System</title>
+<title>Smart Home Dashboard</title>
 
-    <style>
-        body {
-            font-family: Arial;
-            background: linear-gradient(to right, #1e3c72, #2a5298);
-            color: white;
-            text-align: center;
-        }
+<style>
+body{
+    background:#111;
+    color:white;
+    text-align:center;
+    font-family:Arial;
+}
+button{
+    margin:5px;
+    padding:10px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+.alert{color:red;font-weight:bold}
+.safe{color:lightgreen}
+.card{
+    background:#222;
+    padding:15px;
+    margin:10px;
+    border-radius:10px;
+}
+</style>
 
-        .card {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            margin: 20px;
-            border-radius: 15px;
-        }
-
-        button {
-            padding: 10px;
-            border-radius: 10px;
-            background: #00c6ff;
-        }
-
-        .danger {
-            background: red;
-        }
-    </style>
 </head>
 
 <body>
 
-<h1>🔥 Smart Gas Leakage Detection</h1>
+<h1>🏠 Smart Home Automation</h1>
 
+<!-- GAS -->
 <div class="card">
-    <h2>Appliances</h2>
-    {% for device, status in appliances.items() %}
-        <p>
-            {{device}} : {{status}}
-            <button onclick="toggle('{{device}}')">Toggle</button>
-        </p>
-    {% endfor %}
+<h2>Gas Monitoring</h2>
+<input id="gas" type="number" placeholder="Enter gas value">
+<br><br>
+<button onclick="sendGas()">Check</button>
+<h3 id="status"></h3>
 </div>
 
+<!-- APPLIANCES -->
 <div class="card">
-    <h2>Gas Status: {{gas}}</h2>
-    <button class="danger" onclick="gas()">Simulate Gas Leak</button>
+<h2>Appliances</h2>
+
+<button onclick="control('fan','ON')">Fan ON</button>
+<button onclick="control('fan','OFF')">Fan OFF</button>
+
+<button onclick="control('tv','ON')">TV ON</button>
+<button onclick="control('tv','OFF')">TV OFF</button>
+
+<button onclick="control('ac','ON')">AC ON</button>
+<button onclick="control('ac','OFF')">AC OFF</button>
+
+<button onclick="control('main_power','OFF')">⚡ Cut Power</button>
+
+<h3 id="appliances"></h3>
 </div>
 
+<!-- FIRE -->
 <div class="card">
-    <h2>Live Camera</h2>
-    <img src="/video_feed" width="400">
+<h2>🔥 Fire Detection</h2>
+<button onclick="detectFire()">Simulate Fire</button>
+</div>
+
+<!-- CAMERA -->
+<div class="card">
+<h2>📷 Live Camera</h2>
+<video id="cam" width="320" autoplay></video>
 </div>
 
 <script>
-function toggle(d){
-    fetch('/toggle/' + d).then(()=>location.reload())
+
+let API = "";
+
+
+// 🔥 GAS FUNCTION (FIXED)
+function sendGas(){
+    let v = document.getElementById("gas").value;
+
+    fetch(API + "/gas-data", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({gas_level:Number(v)})
+    })
+    .then(r => r.json())
+    .then(d => {
+        let el = document.getElementById("status");
+        el.innerHTML = d.status;
+        el.className = d.status == "ALERT" ? "alert" : "safe";
+    });
 }
 
-function gas(){
-    fetch('/gas').then(()=>location.reload())
+
+// ⚡ CONTROL APPLIANCES
+function control(device, action){
+    fetch(API + "/control", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({device:device, action:action})
+    })
+    .then(r => r.json())
+    .then(d => {
+        document.getElementById("appliances").innerHTML =
+            JSON.stringify(d.appliances);
+    });
 }
+
+
+// 🔥 FIRE ALERT (SIMULATION)
+function detectFire(){
+    fetch(API + "/fire", {
+        method:"POST"
+    })
+    .then(r => r.json())
+    .then(d => {
+        alert("🔥 FIRE DETECTED!");
+    });
+}
+
+
+// 📷 CAMERA
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream => {
+    document.getElementById("cam").srcObject = stream;
+})
+.catch(err => {
+    console.log("Camera error:", err);
+});
+
 </script>
 
 </body>

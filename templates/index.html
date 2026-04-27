@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Gas System</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: white;
+            text-align: center;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 20px;
+            border-radius: 15px;
+        }
+
+        button {
+            padding: 10px;
+            border-radius: 10px;
+            background: #00c6ff;
+        }
+
+        .danger {
+            background: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🔥 Smart Gas Leakage Detection</h1>
+
+<div class="card">
+    <h2>Appliances</h2>
+    {% for device, status in appliances.items() %}
+        <p>
+            {{device}} : {{status}}
+            <button onclick="toggle('{{device}}')">Toggle</button>
+        </p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h2>Gas Status: {{gas}}</h2>
+    <button class="danger" onclick="gas()">Simulate Gas Leak</button>
+</div>
+
+<div class="card">
+    <h2>Live Camera</h2>
+    <img src="/video_feed" width="400">
+</div>
+
+<script>
+function toggle(d){
+    fetch('/toggle/' + d).then(()=>location.reload())
+}
+
+function gas(){
+    fetch('/gas').then(()=>location.reload())
+}
+</script>
+
+</body>
+</html>

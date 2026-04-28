@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html>
 <head>
-<title>Smart Home Dashboard</title>
+<title>Smart Gas System</title>
 
 <style>
 body{
@@ -10,42 +10,39 @@ body{
     text-align:center;
     font-family:Arial;
 }
-button{
-    margin:5px;
-    padding:10px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-}
-.alert{color:red;font-weight:bold}
-.safe{color:lightgreen}
 .card{
     background:#222;
     padding:15px;
     margin:10px;
     border-radius:10px;
 }
+button{
+    padding:10px;
+    margin:5px;
+}
 </style>
-
 </head>
 
 <body>
 
-<h1>🏠 Smart Home Automation</h1>
+<h1>🏠 Smart Gas System</h1>
 
-<!-- GAS -->
 <div class="card">
 <h2>Gas Monitoring</h2>
-<input id="gas" type="number" placeholder="Enter gas value">
-<br><br>
+<input id="gas" type="number">
 <button onclick="sendGas()">Check</button>
 <h3 id="status"></h3>
 </div>
 
-<!-- APPLIANCES -->
 <div class="card">
-<h2>Appliances</h2>
+<h2>🎥 Video Detection</h2>
+<input type="file" id="video">
+<button onclick="uploadVideo()">Upload</button>
+<h3 id="videoResult"></h3>
+</div>
 
+<div class="card">
+<h2>⚡ Appliances</h2>
 <button onclick="control('fan','ON')">Fan ON</button>
 <button onclick="control('fan','OFF')">Fan OFF</button>
 
@@ -55,83 +52,84 @@ button{
 <button onclick="control('ac','ON')">AC ON</button>
 <button onclick="control('ac','OFF')">AC OFF</button>
 
-<button onclick="control('main_power','OFF')">⚡ Cut Power</button>
+<button onclick="control('light','ON')">Light ON</button>
+<button onclick="control('light','OFF')">Light OFF</button>
 
-<h3 id="appliances"></h3>
+<button onclick="control('washing_machine','ON')">WM ON</button>
+<button onclick="control('washing_machine','OFF')">WM OFF</button>
+
+<button onclick="control('main_power','OFF')">CUT POWER</button>
+
+<pre id="appliances"></pre>
 </div>
 
-<!-- FIRE -->
-<div class="card">
-<h2>🔥 Fire Detection</h2>
-<button onclick="detectFire()">Simulate Fire</button>
-</div>
-
-<!-- CAMERA -->
 <div class="card">
 <h2>📷 Live Camera</h2>
-<video id="cam" width="320" autoplay></video>
+<video id="cam" width="300" autoplay></video>
+</div>
+
+<div class="card">
+<h2>📊 Database</h2>
+<button onclick="viewData()">View Data</button>
+<pre id="db"></pre>
 </div>
 
 <script>
 
 let API = window.location.origin;
 
-
-// 🔥 GAS FUNCTION (FIXED)
 function sendGas(){
-    let v = document.getElementById("gas").value;
-
-    fetch(API + "/gas-data", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({gas_level:Number(v)})
-    })
-    .then(r => r.json())
-    .then(d => {
-        let el = document.getElementById("status");
-        el.innerHTML = d.status;
-        el.className = d.status == "ALERT" ? "alert" : "safe";
-    });
-}
-
-
-// ⚡ CONTROL APPLIANCES
-function control(device, action){
-    fetch(API + "/control", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({device:device, action:action})
-    })
-    .then(r => r.json())
-    .then(d => {
-        document.getElementById("appliances").innerHTML =
-            JSON.stringify(d.appliances);
-    });
-}
-
-
-// 🔥 FIRE ALERT (SIMULATION)
-function detectFire(){
-    fetch(API + "/fire", {
-        method:"POST"
-    })
-    .then(r => r.json())
-    .then(d => {
-        alert("🔥 FIRE DETECTED!");
-    });
-}
-
-
-// 📷 CAMERA
-navigator.mediaDevices.getUserMedia({video:true})
-.then(stream => {
-    document.getElementById("cam").srcObject = stream;
+fetch(API+"/gas-data",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({gas_level:Number(gas.value)})
 })
-.catch(err => {
-    console.log("Camera error:", err);
+.then(r=>r.json())
+.then(d=>{
+status.innerHTML=d.status;
 });
+}
+
+function uploadVideo(){
+let file=document.getElementById("video").files[0];
+let fd=new FormData();
+fd.append("video",file);
+
+fetch(API+"/upload-video",{method:"POST",body:fd})
+.then(r=>r.json())
+.then(d=>{
+videoResult.innerHTML=d.result;
+});
+}
+
+function control(d,a){
+fetch(API+"/control",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({device:d,action:a})
+})
+.then(r=>r.json())
+.then(d=>{
+appliances.innerHTML=JSON.stringify(d,null,2);
+});
+}
+
+function viewData(){
+fetch(API+"/view-data")
+.then(r=>r.json())
+.then(d=>{
+db.innerHTML=JSON.stringify(d,null,2);
+});
+}
+
+// CAMERA
+navigator.mediaDevices.getUserMedia({video:true})
+.then(s=>cam.srcObject=s);
 
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
